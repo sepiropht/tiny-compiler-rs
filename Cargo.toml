@@ -1,0 +1,7 @@
+[package]
+name = "tiny-compiler"
+version = "0.1.0"
+authors = ["sepiropht <sergembotta@mailoo.ogr>"]
+edition = "2018"
+
+[dependencies]
