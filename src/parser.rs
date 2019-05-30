@@ -5,6 +5,7 @@ pub struct Ast {
     typ: String,
     body: Vec<Node>,
 }
+
 #[derive(PartialEq, Debug)]
 pub struct Node {
     typ: String,
@@ -13,8 +14,92 @@ pub struct Node {
     params: Vec<Node>,
 }
 
-pub fn parser(tokens: Vec<Token>) -> Ast {
-    unimplemented!()
+pub fn parser(tokens: Vec<Token>) -> Result<Ast, String> {
+    let mut iter = tokens.into_iter().peekable();
+    let mut body = vec![];
+
+    loop {
+        let token = iter.peek();
+
+        if token.is_none() {
+            break;
+        }
+
+        match walk(&mut iter) {
+            Ok(node) => body.push(node),
+            _ => break,
+        };
+    }
+
+    let ast = Ast {
+        typ: "Program".to_string(),
+        body,
+    };
+
+    return Ok(ast);
+
+    fn walk<I>(iter: &mut I) -> Result<Node, String>
+    where
+        I: Iterator<Item = Token>,
+    {
+        let token = iter.next().expect("1");
+
+        match &token.typ {
+            typ if typ == "number" => {
+                iter.next();
+                return Ok(Node {
+                    typ: "NumberLiteral".to_string(),
+                    name: "".to_string(),
+                    val: token.val,
+                    params: vec![],
+                });
+            }
+            typ if typ == "string" => {
+                iter.next();
+                return Ok(Node {
+                    typ: "StringLiteral".to_string(),
+                    name: "".to_string(),
+                    val: token.val,
+                    params: vec![],
+                });
+            }
+
+            typ if typ == "paren" && token.val == "(" => {
+
+                let token = iter.next().expect("2");
+
+                let mut params = vec![];
+                let name = token.val;
+
+                let mut token = iter.next().expect("3");
+
+                while (token.typ != "paren".to_string())
+                    || (token.typ == "paren".to_string() && token.val != ")".to_string())
+                {
+                    params.push(walk(iter).expect("4"));
+                    token = match iter.next() {
+                        Some(res) => res,
+                        _ => Token {typ: "paren".to_string(), val: ")".to_string()}
+                    }
+                }
+                // skip the next )
+                iter.next();
+
+                return Ok(Node {
+                    typ: "CallExpression".to_string(),
+                    name,
+                    val: "".to_string(),
+                    params,
+                });
+            }
+            _ => {
+                return Err(format!(
+                    "Syntax error: '''{}''' token is not valid",
+                    token.typ
+                ));
+            }
+        }
+    };
 }
 
 #[test]
@@ -58,7 +143,7 @@ fn test_parser() {
         },
     ];
 
-        let ast = Ast {
+    let ast = Ast {
         typ: "Program".to_string(),
         body: vec![Node {
             val: "".to_string(),
@@ -93,5 +178,6 @@ fn test_parser() {
             ],
         }],
     };
-    assert!(parser(tokens) == ast);
+    dbg!(parser(tokens.clone()).unwrap());
+    assert!(parser(tokens).unwrap() == ast);
 }

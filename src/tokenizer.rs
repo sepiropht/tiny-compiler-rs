@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Token {
     pub typ: String,
     pub val: String,
@@ -134,7 +134,5 @@ fn test_tokenizer() {
             val: ')'.to_string(),
         },
     ];
-    assert!(
-        tokenizer(&input).unwrap() == tokens
-    );
+    assert!(tokenizer(&input).unwrap() == tokens);
 }
