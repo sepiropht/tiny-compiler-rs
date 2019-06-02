@@ -19,13 +19,13 @@ pub fn parser(tokens: Vec<Token>) -> Result<Ast, String> {
     let mut body = vec![];
 
     loop {
-        let token = iter.peek();
+        let token = iter.next();
 
         if token.is_none() {
             break;
         }
 
-        match walk(&mut iter) {
+        match walk(&mut iter, token.unwrap()) {
             Ok(node) => body.push(node),
             _ => break,
         };
@@ -38,15 +38,14 @@ pub fn parser(tokens: Vec<Token>) -> Result<Ast, String> {
 
     return Ok(ast);
 
-    fn walk<I>(iter: &mut I) -> Result<Node, String>
+    fn walk<I>(iter: &mut I, token: Token) -> Result<Node, String>
     where
         I: Iterator<Item = Token>,
     {
-        let token = iter.next().expect("1");
+       //dbg!(&token);
 
         match &token.typ {
             typ if typ == "number" => {
-                iter.next();
                 return Ok(Node {
                     typ: "NumberLiteral".to_string(),
                     name: "".to_string(),
@@ -55,7 +54,6 @@ pub fn parser(tokens: Vec<Token>) -> Result<Ast, String> {
                 });
             }
             typ if typ == "string" => {
-                iter.next();
                 return Ok(Node {
                     typ: "StringLiteral".to_string(),
                     name: "".to_string(),
@@ -67,23 +65,22 @@ pub fn parser(tokens: Vec<Token>) -> Result<Ast, String> {
             typ if typ == "paren" && token.val == "(" => {
 
                 let token = iter.next().expect("2");
-
+                //dbg!(&token);
                 let mut params = vec![];
-                let name = token.val;
-
+                let name = token.val.clone();
                 let mut token = iter.next().expect("3");
 
                 while (token.typ != "paren".to_string())
                     || (token.typ == "paren".to_string() && token.val != ")".to_string())
                 {
-                    params.push(walk(iter).expect("4"));
+                    params.push(walk(iter, token).expect("ici"));
                     token = match iter.next() {
                         Some(res) => res,
                         _ => Token {typ: "paren".to_string(), val: ")".to_string()}
                     }
                 }
                 // skip the next )
-                iter.next();
+                //iter.next();
 
                 return Ok(Node {
                     typ: "CallExpression".to_string(),
@@ -115,7 +112,7 @@ fn test_parser() {
         },
         Token {
             typ: "number".to_string(),
-            val: "2".to_string(),
+            val: "1".to_string(),
         },
         Token {
             typ: "paren".to_string(),
@@ -153,7 +150,7 @@ fn test_parser() {
                 Node {
                     name: "".to_string(),
                     typ: "NumberLiteral".to_string(),
-                    val: "2".to_string(),
+                    val: "1".to_string(),
                     params: vec![],
                 },
                 Node {
