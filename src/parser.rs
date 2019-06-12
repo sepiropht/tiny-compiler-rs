@@ -3,7 +3,7 @@ use crate::tokenizer::Token;
 #[derive(PartialEq, Debug)]
 pub struct Ast {
     typ: String,
-    body: Vec<Node>,
+    pub body: Vec<Node>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -176,5 +176,5 @@ fn test_parser() {
         }],
     };
     dbg!(parser(tokens.clone()).unwrap());
-    assert!(parser(tokens).unwrap() == ast);
+    assert!(parser(tokens) == Ok(ast));
 }

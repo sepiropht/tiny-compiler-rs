@@ -134,5 +134,5 @@ fn test_tokenizer() {
             val: ')'.to_string(),
         },
     ];
-    assert!(tokenizer(&input).unwrap() == tokens);
+    assert!(tokenizer(&input) == Ok(tokens));
 }
