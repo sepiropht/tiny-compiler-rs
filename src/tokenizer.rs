@@ -1,7 +1,10 @@
 #[derive(PartialEq, Debug, Clone)]
-pub struct Token {
-    pub typ: String,
-    pub val: String,
+pub enum Token {
+    Number(i32),
+    Identifier(String),
+    String(String),
+    OpenParen,
+    CloseParen,
 }
 
 pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
@@ -18,14 +21,8 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
         let ch = ch.unwrap();
 
         match ch {
-            '(' => tokens.push(Token {
-                typ: "paren".to_string(),
-                val: "(".to_string(),
-            }),
-            ')' => tokens.push(Token {
-                typ: "paren".to_string(),
-                val: ')'.to_string(),
-            }),
+            '(' => tokens.push(Token::OpenParen),
+            ')' => tokens.push(Token::CloseParen),
             ' ' => continue,
 
             n @ '0'...'9' => {
@@ -41,10 +38,7 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
                         }
                     }
                 }
-                tokens.push(Token {
-                    typ: "number".to_string(),
-                    val: number,
-                });
+                tokens.push(Token::Number(number.parse().unwrap()));
             }
 
             '"' => {
@@ -60,10 +54,7 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
                         }
                     }
                 }
-                tokens.push(Token {
-                    typ: "string".to_string(),
-                    val: name,
-                });
+                tokens.push(Token::String(name));
             }
 
             i @ 'a'...'z' | i @ 'A'...'Z' => {
@@ -78,10 +69,7 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
                         _ => break,
                     }
                 }
-                tokens.push(Token {
-                    typ: "name".to_string(),
-                    val: name,
-                });
+                tokens.push(Token::Identifier(name));
             }
 
             c @ _ => {
@@ -89,7 +77,6 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
             }
         };
     }
-    println!("{:?}", tokens);
     Ok(tokens)
 }
 
@@ -97,42 +84,16 @@ pub fn tokenizer(input: &str) -> Result<Vec<Token>, String> {
 fn test_tokenizer() {
     let input = "(add 2 (subtract 4 2))";
     let tokens = vec![
-        Token {
-            typ: "paren".to_string(),
-            val: "(".to_string(),
-        },
-        Token {
-            typ: "name".to_string(),
-            val: "add".to_string(),
-        },
-        Token {
-            typ: "number".to_string(),
-            val: "2".to_string(),
-        },
-        Token {
-            typ: "paren".to_string(),
-            val: "(".to_string(),
-        },
-        Token {
-            typ: "name".to_string(),
-            val: "subtract".to_string(),
-        },
-        Token {
-            typ: "number".to_string(),
-            val: "4".to_string(),
-        },
-        Token {
-            typ: "number".to_string(),
-            val: "2".to_string(),
-        },
-        Token {
-            typ: "paren".to_string(),
-            val: ")".to_string(),
-        },
-        Token {
-            typ: "paren".to_string(),
-            val: ')'.to_string(),
-        },
+        Token::OpenParen,
+        Token::Identifier("add".to_string()),
+        Token::Number(2),
+        Token::OpenParen,
+        Token::Identifier("subtract".to_string()),
+        Token::Number(4),
+        Token::Number(2),
+        Token::CloseParen,
+        Token::CloseParen,
     ];
+    println!("{:?}", tokenizer(&input));
     assert!(tokenizer(&input) == Ok(tokens));
 }
